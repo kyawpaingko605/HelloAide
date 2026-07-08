@@ -19,11 +19,10 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # ၁။ Android Project structure နှင့် လိုအပ်သော Layout XML များပါ အစမှ ပြန်ဆောက်ခြင်း
+    # ၁။ Android Project structure ကို အမှားပြင်ဆင်ပြီး ပြန်ဆောက်ခြင်း
     - name: Scaffold Android Project From Scratch
       run: |
         echo "► Creating Android Project Directory Structure..."
-        # com.example.helloaide လမ်းကြောင်းအတိုင်း သေချာဆောက်ပါတယ်
         mkdir -p app/src/main/java/com/example/helloaide
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/values
@@ -106,12 +105,12 @@ jobs:
         </manifest>
         EOF
 
-        # ✅ ပြင်ဆင်ချက် - activity_main.xml ဖိုင်ကို ID သတ်မှတ်ချက်နှင့်တကွ အသစ်ဆောက်ပေးလိုက်ပါတယ်
+        # ✅ ပြင်ဆင်ချက် - android:layout_width ကို match_parent သို့ ပြောင်းလဲလိုက်ပါတယ်
         echo "► Generating activity_main.xml Layout..."
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_match"
+            android:layout_width="match_parent"
             android:layout_height="match_parent">
             <TextView
                 android:id="@+id/hello"
@@ -123,7 +122,6 @@ jobs:
         </RelativeLayout>
         EOF
 
-        # ✅ ပြင်ဆင်ချက် - Package name လမ်းကြောင်းမှန်အောင် ပြန်ရေးထားပါတယ်
         echo "► Generating MainActivity.java..."
         cat << 'EOF' > app/src/main/java/com/example/helloaide/MainActivity.java
         package com.example.helloaide;
@@ -150,7 +148,7 @@ jobs:
         </resources>
         EOF
 
-    # ၂။ Gradle Setup ပြုလုပ်ခြင်း
+    # ၂။ Gradle Setup ประုလုပ်ခြင်း
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
