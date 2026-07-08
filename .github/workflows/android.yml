@@ -1,0 +1,48 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17' # ပိုမိုကောင်းမွန်ပြီး တည်ငြိမ်တဲ့ Java 17 ကို သုံးထားပါတယ်
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    # ၁။ Release APK အဖြစ် Build ဆွဲခြင်း
+    - name: Build Release APK
+      run: ./gradlew assembleRelease
+
+    # ၂။ ထွက်လာတဲ့ APK ကို အလိုအလျောက် သတ်မှတ်ချက်များနှင့် လက်မှတ်ထိုးခြင်း (Sign)
+    - name: Sign APK
+      uses: r0adkll/sign-android-release@v1
+      id: sign_app
+      with:
+        releaseDirectory: app/build/outputs/apk/release
+        signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+        alias: ${{ secrets.ALIAS }}
+        keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+        keyPassword: ${{ secrets.KEY_PASSWORD }}
+      env:
+        BUILD_TOOLS_VERSION: "34.0.0"
+
+    # ၃။ လက်မှတ်ထိုးပြီးသား APK ဖိုင်ကို ဒေါင်းလုဒ်ဆွဲနိုင်ရန် Artifact အနေဖြင့် တင်ပေးခြင်း
+    - name: Upload Signed APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Signed-Release-APK
+        path: ${{ steps.sign_app.outputs.signedReleaseFile }}
