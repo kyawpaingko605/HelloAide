@@ -19,10 +19,11 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # ၁။ Android Project structure ကို တည်ဆောက်ခြင်း
+    # ၁။ Android Project structure နှင့် လိုအပ်သော Layout XML များပါ အစမှ ပြန်ဆောက်ခြင်း
     - name: Scaffold Android Project From Scratch
       run: |
         echo "► Creating Android Project Directory Structure..."
+        # com.example.helloaide လမ်းကြောင်းအတိုင်း သေချာဆောက်ပါတယ်
         mkdir -p app/src/main/java/com/example/helloaide
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/values
@@ -105,6 +106,24 @@ jobs:
         </manifest>
         EOF
 
+        # ✅ ပြင်ဆင်ချက် - activity_main.xml ဖိုင်ကို ID သတ်မှတ်ချက်နှင့်တကွ အသစ်ဆောက်ပေးလိုက်ပါတယ်
+        echo "► Generating activity_main.xml Layout..."
+        cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_match"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/hello"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:textSize="24sp"
+                android:text="Hello World from HelloAide!" />
+        </RelativeLayout>
+        EOF
+
+        # ✅ ပြင်ဆင်ချက် - Package name လမ်းကြောင်းမှန်အောင် ပြန်ရေးထားပါတယ်
         echo "► Generating MainActivity.java..."
         cat << 'EOF' > app/src/main/java/com/example/helloaide/MainActivity.java
         package com.example.helloaide;
@@ -116,10 +135,10 @@ jobs:
             @Override
             protected void onCreate(Bundle savedInstanceState) {
                 super.onCreate(savedInstanceState);
-                TextView tv = new TextView(this);
-                tv.setText("Hello World from HelloAide!");
-                tv.setTextSize(24);
-                setContentView(tv);
+                setContentView(R.layout.activity_main);
+                
+                TextView tv = findViewById(R.id.hello);
+                tv.setText("Hello World from HelloAide! (Fixed)");
             }
         }
         EOF
@@ -131,13 +150,13 @@ jobs:
         </resources>
         EOF
 
-    # ၂။ 🛠️ အပြောင်းအလဲအသစ် - Gradle 8.5 ကို တိုက်ရိုက် သတ်မှတ်ပြီး Setup လုပ်ခြင်း
+    # ၂။ Gradle Setup ပြုလုပ်ခြင်း
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
         gradle-version: '8.5'
 
-    # ၃။ တရားဝင်သတ်မှတ်ထားတဲ့ gradle command နဲ့ Debug APK ကို Build ဆွဲခြင်း
+    # ၃။ Debug APK ကို Build ဆွဲခြင်း
     - name: Build Debug APK
       run: gradle assembleDebug
 
