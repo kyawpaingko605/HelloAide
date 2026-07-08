@@ -19,9 +19,13 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # ၁။ Android Project structure ကို အမှားပြင်ဆင်ပြီး ပြန်ဆောက်ခြင်း
+    # ၁။ လမ်းကြောင်းဟောင်းများကို ဖျက်ဆီးပြီး Android Project အသစ်ကို စနစ်တကျ ပြန်ဆောက်ခြင်း
     - name: Scaffold Android Project From Scratch
       run: |
+        echo "► Cleaning up old directories to avoid package conflict..."
+        # ရှိပြီးသား app folder ဟောင်းကို လုံးဝ ဖျက်ပစ်ပါတယ် (package R အမှား ရှင်းစေရန်)
+        rm -rf app
+        
         echo "► Creating Android Project Directory Structure..."
         mkdir -p app/src/main/java/com/example/helloaide
         mkdir -p app/src/main/res/layout
@@ -94,7 +98,7 @@ jobs:
                 android:label="HelloAide"
                 android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
                 <activity
-                    android:name=".MainActivity"
+                    android:name="com.example.helloaide.MainActivity"
                     android:exported="true">
                     <intent-filter>
                         <action android:name="android.intent.action.MAIN" />
@@ -105,7 +109,6 @@ jobs:
         </manifest>
         EOF
 
-        # ✅ ပြင်ဆင်ချက် - android:layout_width ကို match_parent သို့ ပြောင်းလဲလိုက်ပါတယ်
         echo "► Generating activity_main.xml Layout..."
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
         <?xml version="1.0" encoding="utf-8"?>
@@ -136,7 +139,7 @@ jobs:
                 setContentView(R.layout.activity_main);
                 
                 TextView tv = findViewById(R.id.hello);
-                tv.setText("Hello World from HelloAide! (Fixed)");
+                tv.setText("Hello World from HelloAide! (Completely Cleaned & Fixed)");
             }
         }
         EOF
@@ -148,7 +151,7 @@ jobs:
         </resources>
         EOF
 
-    # ၂။ Gradle Setup ประုလုပ်ခြင်း
+    # ၂။ Gradle Setup ပြုလုပ်ခြင်း
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
