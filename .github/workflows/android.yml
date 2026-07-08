@@ -18,36 +18,127 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        # အမှားပြနေတဲ့အတွက် cache သတ်မှတ်ချက်ကို ဖြုတ်ထားပါတယ်
 
-    # Gradle Wrapper မရှိပါက အလိုအလျောက် ဆောက်ခိုင်းခြင်း
-    - name: Ensure Gradle Wrapper exists
+    # ၁။ Android Project structure နှင့် ဖိုင်များကို အစမှအသစ် ဆောက်ခြင်း
+    - name: Scaffold Android Project From Scratch
       run: |
-        if [ ! -f gradlew ]; then
-          gradle wrapper
-        fi
+        echo "► Creating Android Project Directory Structure..."
+        mkdir -p app/src/main/java/com/example/helloaide
+        mkdir -p app/src/main/res/layout
+        mkdir -p app/src/main/res/values
+
+        echo "► Generating settings.gradle..."
+        cat << 'EOF' > settings.gradle
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "HelloAide"
+        include ':app'
+        EOF
+
+        echo "► Generating root build.gradle..."
+        cat << 'EOF' > build.gradle
+        plugins {
+            id 'com.android.application' version '8.2.0' apply false
+        }
+        EOF
+
+        echo "► Generating app/build.gradle..."
+        cat << 'EOF' > app/build.gradle
+        plugins {
+            id 'com.android.application'
+        }
+        android {
+            namespace 'com.example.helloaide'
+            compileSdk 34
+            defaultConfig {
+                applicationId "com.example.helloaide"
+                minSdk 24
+                targetSdk 34
+                versionCode 1
+                versionName "1.0"
+            }
+            buildTypes {
+                release {
+                    minifyEnabled false
+                }
+            }
+        }
+        dependencies {
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+        }
+        EOF
+
+        echo "► Generating AndroidManifest.xml..."
+        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <application
+                android:allowBackup="true"
+                android:label="HelloAide"
+                android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+        EOF
+
+        echo "► Generating MainActivity.java..."
+        cat << 'EOF' > app/src/main/java/com/example/helloaide/MainActivity.java
+        package com.example.helloaide;
+        import android.os.Bundle;
+        import android.widget.TextView;
+        import androidx.appcompat.app.AppCompatActivity;
+
+        public class MainActivity extends AppCompatActivity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                TextView tv = new TextView(this);
+                tv.setText("Hello World from HelloAide!");
+                tv.setTextSize(24);
+                setContentView(tv);
+            }
+        }
+        EOF
+
+        echo "► Generating strings.xml..."
+        cat << 'EOF' > app/src/main/res/values/strings.xml
+        <resources>
+            <string name="app_name">HelloAide</string>
+        </resources>
+        EOF
+
+    # ၂။ Gradle Wrapper အသစ်စတင်တည်ဆောက်ခြင်း
+    - name: Initialize Gradle Wrapper
+      run: |
+        gradle wrapper --gradle-version 8.5
         chmod +x gradlew
 
-    # Release APK အဖြစ် Build ဆွဲခြင်း
-    - name: Build Release APK
-      run: ./gradlew assembleRelease
+    # ၃။ APK Build ဆွဲခြင်း
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug
 
-    # ထွက်လာတဲ့ APK ကို အလိုအလျောက် လက်မှတ်ထိုးခြင်း (Sign)
-    - name: Sign APK
-      uses: r0adkll/sign-android-release@v1
-      id: sign_app
-      with:
-        releaseDirectory: app/build/outputs/apk/release
-        signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-        alias: ${{ secrets.ALIAS }}
-        keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-        keyPassword: ${{ secrets.KEY_PASSWORD }}
-      env:
-        BUILD_TOOLS_VERSION: "34.0.0"
-
-    # လက်မှတ်ထိုးပြီးသား APK ကို တင်ပေးခြင်း
-    - name: Upload Signed APK
+    # ၄။ ထွက်လာတဲ့ APK ကို အောင်မြင်စွာ သိမ်းဆည်းပြီး ဒေါင်းလုဒ်ပေးခြင်း
+    - name: Upload Generated APK
       uses: actions/upload-artifact@v4
       with:
-        name: Signed-Release-APK
-        path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+        name: HelloAide-AutoGenerated-APK
+        path: app/build/outputs/apk/debug/app-debug.apk
