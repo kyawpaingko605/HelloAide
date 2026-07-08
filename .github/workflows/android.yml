@@ -19,7 +19,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # ၁။ Android Project structure ကို ပြန်လည် စနစ်တကျ ဆောက်ခြင်း
+    # ၁။ Android Project structure ကို တည်ဆောက်ခြင်း
     - name: Scaffold Android Project From Scratch
       run: |
         echo "► Creating Android Project Directory Structure..."
@@ -47,7 +47,6 @@ jobs:
         include ':app'
         EOF
 
-        # ✅ အသစ်ထည့်သွင်းချက် - Error ကုထုံးအတွက် gradle.properties ဆောက်ခြင်း
         echo "► Generating gradle.properties..."
         cat << 'EOF' > gradle.properties
         android.useAndroidX=true
@@ -132,15 +131,15 @@ jobs:
         </resources>
         EOF
 
-    # ၂။ Gradle Wrapper အား စတင်တည်ဆောက်ခြင်း
-    - name: Initialize Gradle Wrapper
-      run: |
-        gradle wrapper --gradle-version 8.5
-        chmod +x gradlew
+    # ၂။ 🛠️ အပြောင်းအလဲအသစ် - Gradle 8.5 ကို တိုက်ရိုက် သတ်မှတ်ပြီး Setup လုပ်ခြင်း
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.5'
 
-    # ၃။ Debug APK အဖြစ် Build ဆွဲခြင်း
+    # ၃။ တရားဝင်သတ်မှတ်ထားတဲ့ gradle command နဲ့ Debug APK ကို Build ဆွဲခြင်း
     - name: Build Debug APK
-      run: ./gradlew assembleDebug
+      run: gradle assembleDebug
 
     # ၄။ Generated APK ကို သိမ်းဆည်းပေးခြင်း
     - name: Upload Generated APK
